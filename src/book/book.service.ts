@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateBookDto } from './dto/book.dto';
+import { CreateBookDto, UpdateBookDto } from './dto/book.dto';
 
 @Injectable()
 export class BookService {
@@ -44,4 +44,52 @@ export class BookService {
         
         return book
     }
+
+    async updateBook(bookId: string, dto: UpdateBookDto) {
+        const { title, descriptin, author } = dto;
+        const existingBook = await this.prisma.book.findFirst({
+            where: { id: bookId }
+        });
+
+        console.log("existingBook==>",existingBook);
+        
+
+        if (!existingBook) {
+            throw new BadRequestException("Book ID not found.");
+        }
+        const updatedBook = await this.prisma.book.update({
+            where: { id: bookId },
+            data: {title, descriptin, author},
+        });
+
+        return updatedBook;
+    }
+    async getBookById(bookId: string) {
+        const book = await this.prisma.book.findUnique({
+            where: { id: bookId },
+        });
+
+        if (!book) {
+            throw new BadRequestException("Book not found");
+        }
+
+        return book;
+    }
+
+    async deleteBook(bookId: string) {
+        const existingBook = await this.prisma.book.findUnique({
+            where: { id: bookId },
+        });
+
+        if (!existingBook) {
+            throw new BadRequestException("Book not found");
+        }
+
+        const deletedBook = await this.prisma.book.delete({
+            where: { id: bookId },
+        });
+
+        return deletedBook;
+    }
+
 }

@@ -1,6 +1,6 @@
 import { BookService } from './book.service';
-import { Body, Controller, Get, HttpException, InternalServerErrorException, Post } from '@nestjs/common';
-import { CreateBookDto } from './dto/book.dto';
+import { Body, Controller, Delete, Get, HttpException, InternalServerErrorException, Param, Post, Put } from '@nestjs/common';
+import { CreateBookDto, UpdateBookDto } from './dto/book.dto';
 
 @Controller('book')
 export class BookController {
@@ -18,7 +18,7 @@ export class BookController {
             }            
         } catch (error) {
             console.error("Error in getAllBooks:", error);
-            throw new InternalServerErrorException("Something went wrong while fetching books")
+            throw error;
         }
     }
 
@@ -34,6 +34,54 @@ export class BookController {
             }
         } catch (error) {
             console.error("Error in create Book", error)
+            throw error
+        }
+    }
+
+    @Put("/update-book/:id")
+    async updateBook(@Param("id") bookId: string,  @Body() dto: UpdateBookDto){
+        try {
+            const book = await this.bookService.updateBook(bookId, dto);
+            return {
+                statusCode: 200, 
+                success: true,
+                message: " Book Upadated Successfully...",
+                results: book,
+            }
+        } catch (error) {
+            console.error("Error in Updated Book", error)
+            throw error
+        }
+    }
+
+    @Get("/:id")
+    async getBookById(@Param("id") bookId: string){
+        try {
+            const book = await this.bookService.getBookById(bookId);
+            return {
+                statusCode: 200, 
+                success: true,
+                message: " Book Fetch Successfully...",
+                results: book,
+            }
+        } catch (error) {
+            console.error("Error in get Book By Id ", error)
+            throw error
+        }
+    }
+
+    @Delete("/delete-book/:id")
+    async deleteBook(@Param("id") bookId: string,  ){
+        try {
+            const book = await this.bookService.deleteBook(bookId);
+            return {
+                statusCode: 200, 
+                success: true,
+                message: " Book Delete Successfully...",
+                results: book,
+            }
+        } catch (error) {
+            console.error("Error in Delete Book", error)
             throw error
         }
     }
