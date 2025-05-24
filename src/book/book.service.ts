@@ -5,21 +5,54 @@ import { CreateBookDto, UpdateBookDto } from './dto/book.dto';
 @Injectable()
 export class BookService {
     constructor(private readonly prisma: PrismaService){}
-    async getAllBooks(){
-        const book = await this.prisma.book.findMany({
+    async getAllBooks(page: number, limit: number, search: string) {
+        const skip = (page - 1) * limit;
+
+        const [books, total] = await this.prisma.$transaction([
+            this.prisma.book.findMany({
+            where: {
+                title: {
+                    contains: search,
+                    mode: 'insensitive',
+                },
+            },
+            skip,
+            take: limit,
             select: {
-                id:true,
-                title:true,
-                descriptin:true,
-                category:true
-            }
-        });
-        
-        if (!book || book.length===0) {
-            throw new NotFoundException("Book Data Not Found")
+                id: true,
+                title: true,
+                descriptin: true,
+                category: true,
+                },
+            }),
+
+            this.prisma.book.count({
+            where: {
+                title: {
+                contains: search,
+                mode: 'insensitive',
+                },
+            },
+            }),
+        ]);
+
+        if (!books.length) {
+            throw new NotFoundException('No books found');
         }
-        return book;
+
+        return {
+            results: books,
+            pagination: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+            },
+        };
     }
+
+
+
 
     async createBook(dto: CreateBookDto) {
         const {descriptin,title,author} = dto;

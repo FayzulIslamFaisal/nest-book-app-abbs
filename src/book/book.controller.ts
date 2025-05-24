@@ -1,15 +1,16 @@
 import { BookService } from './book.service';
-import { Body, Controller, Delete, Get, HttpException, InternalServerErrorException, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, InternalServerErrorException, Param, Post, Put, Query } from '@nestjs/common';
 import { CreateBookDto, UpdateBookDto } from './dto/book.dto';
+import { PaginationQueryDto } from './dto/pagination-query.dto';
 
 @Controller('book')
 export class BookController {
     constructor(private readonly bookService: BookService){}
     @Get("/all-books")
-    async getAllBooks(){
+    async getAllBooks(@Query() query: PaginationQueryDto){
         try {
-            const books = await this.bookService.getAllBooks();
-            console.log("books--->", books);
+            const { page = 1, limit = 5, search = '' } = query;
+            const books = await this.bookService.getAllBooks(page, limit, search);
             return {
                 statusCode: 200, 
                 success: true,
